@@ -14,8 +14,20 @@ const btnHolderVariants: Variants = {
     transition: { staggerChildren: 0.2, delayChildren: 0.3 },
   },
 };
+const cardVariants: Variants = {
+  closed: { opacity: 0, scale: 0 },
+  open: { opacity: 1, scale: 1 },
+};
 
-const Card = ({ card }: { card: CardType }) => {
+const Card = ({
+  card,
+  deleteHandler,
+  updateHandler,
+}: {
+  card: CardType;
+  deleteHandler: (id: number) => void;
+  updateHandler: (newCard: CardType) => void;
+}) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const toggleOpen = () => {
     setIsOpen(isOpen => !isOpen);
@@ -31,6 +43,10 @@ const Card = ({ card }: { card: CardType }) => {
       onClick={toggleOpen}
       transition={{ delay: 0.1, duration: 0.5, type: "spring" }}
       whileHover={!isOpen ? { scale: 1.1, y: -8 } : {}}
+      variants={cardVariants}
+      initial='closed'
+      animate='open'
+      exit='closed'
     >
       <motion.div
         layout
@@ -73,6 +89,10 @@ const Card = ({ card }: { card: CardType }) => {
           <motion.button
             className='h-8 w-8 border-slate-300 border-2 rounded-full'
             variants={buttonVariants}
+            onClick={e => {
+              e.stopPropagation();
+              deleteHandler(card.id);
+            }}
           >
             <TrashIcon />
           </motion.button>
