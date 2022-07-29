@@ -1,4 +1,4 @@
-import { AnimatePresence, LayoutGroup, motion, Variants } from "framer-motion";
+import { AnimatePresence, LayoutGroup } from "framer-motion";
 import React, { useState } from "react";
 import Card from "./components/Card";
 
