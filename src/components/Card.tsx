@@ -1,5 +1,10 @@
-import { AnimatePresence, motion, Variants } from "framer-motion";
-import React, { useState } from "react";
+import {
+  AnimatePresence,
+  motion,
+  Variants,
+  useAnimationControls,
+} from "framer-motion";
+import React, { useEffect, useState } from "react";
 import {
   CheckIcon,
   DotsHorizontalIcon,
@@ -20,8 +25,9 @@ const btnHolderVariants: Variants = {
   },
 };
 const cardVariants: Variants = {
-  closed: { opacity: 0, scale: 0 },
-  open: { opacity: 1, scale: 1 },
+  closed: { opacity: 0, scale: 0, y: 0 },
+  open: { opacity: 1, scale: 1, y: 0 },
+  shake: { x: [null, 5, -5, 5, -5, 0], transition: { duration: 0.4 } },
 };
 
 const Card = ({
@@ -37,12 +43,24 @@ const Card = ({
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const toggleOpen = () => {
     if (isOpen) setIsUpdating(false);
+    controls.start({ scale: 1, y: 0 });
     setIsOpen(isOpen => !isOpen);
   };
   const [textField, setTextField] = useState<string>(card.text);
   const [descriptionField, setDescriptionField] = useState<string>(
     card.description
   );
+  const controls = useAnimationControls();
+  useEffect(() => {
+    controls.set("hidden");
+    controls.start("open");
+  }, []);
+
+  const shakeCard = async () => {
+    await controls.start("shake");
+    controls.start("open");
+  };
+
   return (
     <motion.div
       layout
@@ -53,10 +71,15 @@ const Card = ({
         ${!isOpen && "hover:shadow-2xl"}`}
       onClick={e => (isUpdating ? null : toggleOpen())}
       transition={{ delay: 0.1, duration: 0.5, type: "spring" }}
-      whileHover={!isOpen ? { scale: 1.1, y: -8 } : {}}
       variants={cardVariants}
-      initial='closed'
-      animate='open'
+      onHoverStart={() => {
+        if (!isOpen)
+          controls.start({ scale: 1.1, y: -8, transition: { delay: 0.1 } });
+      }}
+      onHoverEnd={() => {
+        if (!isOpen) controls.start("open");
+      }}
+      animate={controls}
       exit='closed'
     >
       <motion.div
@@ -74,9 +97,24 @@ const Card = ({
           </motion.h1>
         ) : (
           <input
-            className='text-center w-[95%] bg-transparent border-b-2 border-slate-300 text-3xl focus:outline-0'
+            className='text-center w-[95%] bg-transparent border-b-2 border-slate-300 text-3xl focus:outline-0
+              invalid:text-red-400 invalid:border-red-500'
             value={textField}
-            onChange={e => setTextField(e.target.value)}
+            onChange={e => {
+              if (e.target.value.length <= 20) setTextField(e.target.value);
+              else {
+                const oldTimer = window.localStorage.getItem("errorTimer");
+                if (oldTimer) {
+                  clearTimeout(oldTimer);
+                }
+                const timer = setTimeout(() => {
+                  e.target.setCustomValidity("");
+                }, 1000);
+                window.localStorage.setItem("errorTimer", String(timer));
+                e.target.setCustomValidity("max 20 character long");
+                shakeCard();
+              }
+            }}
           />
         )}
 
@@ -90,7 +128,33 @@ const Card = ({
               contentEditable={isUpdating}
               suppressContentEditableWarning={true}
               onInput={e => {
-                setDescriptionField(e.currentTarget.textContent || "");
+                if (
+                  e.currentTarget.textContent &&
+                  e.currentTarget.textContent.length <= 450
+                )
+                  setDescriptionField(e.currentTarget.textContent || "");
+                else {
+                  e.currentTarget.innerHTML = descriptionField;
+                  const range = document.createRange();
+                  const sel = document.getSelection();
+                  range.setStart(e.currentTarget, 1);
+                  range.collapse(true);
+                  sel?.removeAllRanges();
+                  sel?.addRange(range);
+                  e.currentTarget.focus();
+                  const oldTimer = window.localStorage.getItem("errorTimer");
+                  if (oldTimer) {
+                    clearTimeout(oldTimer);
+                  }
+                  const timer = setTimeout(() => {
+                    document
+                      .getElementById(`card-${card.id}-text`)
+                      ?.classList.remove("invalidP");
+                  }, 1000);
+                  window.localStorage.setItem("errorTimer", String(timer));
+                  e.currentTarget.classList.add("invalidP");
+                  shakeCard();
+                }
               }}
               layout
               initial={{ opacity: 0 }}
