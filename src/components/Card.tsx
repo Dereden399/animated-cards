@@ -54,6 +54,7 @@ const Card = ({
   useEffect(() => {
     controls.set("hidden");
     controls.start("open");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const shakeCard = async () => {
@@ -90,36 +91,50 @@ const Card = ({
       >
         {!isUpdating ? (
           <motion.h1
-            className={isOpen ? "text-3xl text-center" : "text-lg text-center"}
+            className={
+              isOpen
+                ? "text-2xl text-center font-medium"
+                : "text-lg text-center"
+            }
             layout
           >
             {card.text}
           </motion.h1>
         ) : (
-          <input
-            className='text-center w-[95%] bg-transparent border-b-2 border-slate-300 text-3xl focus:outline-0
-              invalid:text-red-400 invalid:border-red-500'
-            value={textField}
-            onChange={e => {
-              if (e.target.value.length <= 20) setTextField(e.target.value);
-              else {
-                const oldTimer = window.localStorage.getItem("errorTimer");
-                if (oldTimer) {
-                  clearTimeout(oldTimer);
+          <span className='w-[95%] relative'>
+            <input
+              id={`card-${card.id}-titleInput`}
+              className='peer text-center w-full bg-transparent border-b-2 border-slate-300 text-3xl focus:outline-0
+                invalid:text-red-400 invalid:border-red-500'
+              value={textField}
+              onChange={e => {
+                if (e.target.value.length <= 20) setTextField(e.target.value);
+                else {
+                  const oldTimer =
+                    window.localStorage.getItem("errorTimerTitle");
+                  if (oldTimer) {
+                    clearTimeout(oldTimer);
+                  }
+                  const timer = setTimeout(() => {
+                    e.target.setCustomValidity("");
+                  }, 1000);
+                  window.localStorage.setItem("errorTimerTitle", String(timer));
+                  e.target.setCustomValidity("max 20 character long");
+                  shakeCard();
                 }
-                const timer = setTimeout(() => {
-                  e.target.setCustomValidity("");
-                }, 1000);
-                window.localStorage.setItem("errorTimer", String(timer));
-                e.target.setCustomValidity("max 20 character long");
-                shakeCard();
-              }
-            }}
-          />
+              }}
+            />
+            <span
+              className='absolute text-black z-10 rounded-md bg-white py-1 px-4 -bottom-10 -right-8 shadow-md scale-0 peer-invalid:scale-100
+                         transition-all duration-75 ease-in-out'
+            >
+              Max 20 characters long
+            </span>
+          </span>
         )}
 
-        <AnimatePresence>
-          {isOpen && (
+        {isOpen && (
+          <span className='relative'>
             <motion.p
               id={`card-${card.id}-text`}
               className={
@@ -150,9 +165,17 @@ const Card = ({
                     document
                       .getElementById(`card-${card.id}-text`)
                       ?.classList.remove("invalidP");
+                    document
+                      .getElementById(`card-${card.id}-text`)
+                      ?.parentElement?.children[1].classList.remove(
+                        "scale-100"
+                      );
                   }, 1000);
                   window.localStorage.setItem("errorTimer", String(timer));
                   e.currentTarget.classList.add("invalidP");
+                  e.currentTarget.parentElement?.children[1].classList.add(
+                    "scale-100"
+                  );
                   shakeCard();
                 }
               }}
@@ -162,12 +185,17 @@ const Card = ({
                 opacity: 1,
                 transition: { delay: 0.2, duration: 1 },
               }}
-              exit={{ opacity: 0, transition: { duration: 0.01 } }}
             >
               {card.description}
             </motion.p>
-          )}
-        </AnimatePresence>
+            <span
+              className='absolute text-black z-10 rounded-md bg-white py-1 px-4 -bottom-10 -right-8 shadow-md scale-0
+                         transition-all duration-75 ease-in-out'
+            >
+              Max 450 characters long
+            </span>
+          </span>
+        )}
       </motion.div>
 
       {isOpen && (
