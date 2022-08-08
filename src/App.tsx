@@ -9,7 +9,7 @@ export interface CardType {
 }
 
 const initialCards: Array<CardType> = [
-  { text: "First", description: "Lorem ipsum dolor sit amet", id: 1 },
+  { text: "First", description: "", id: 1 },
   {
     text: "Second",
     description:

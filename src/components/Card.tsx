@@ -108,7 +108,8 @@ const Card = ({
                 invalid:text-red-400 invalid:border-red-500'
               value={textField}
               onChange={e => {
-                if (e.target.value.length <= 20) setTextField(e.target.value);
+                if (e.target.value.length <= 20 && e.target.value.length >= 1)
+                  setTextField(e.target.value);
                 else {
                   const oldTimer =
                     window.localStorage.getItem("errorTimerTitle");
@@ -128,24 +129,27 @@ const Card = ({
               className='absolute text-black z-10 rounded-md bg-white py-1 px-4 -bottom-10 -right-8 shadow-md scale-0 peer-invalid:scale-100
                          transition-all duration-75 ease-in-out'
             >
-              Max 20 characters long
+              Must be 1-20 characters long
             </span>
           </span>
         )}
 
         {isOpen && (
-          <span className='relative'>
+          <span className='relative flex flex-col w-full text-center'>
             <motion.p
               id={`card-${card.id}-text`}
               className={
-                isUpdating ? "border-b-2 border-slate-300 focus:outline-0" : ""
+                isUpdating
+                  ? "border-b-2 border-slate-300 focus:outline-0 w-full"
+                  : ""
               }
               contentEditable={isUpdating}
               suppressContentEditableWarning={true}
               onInput={e => {
                 if (
-                  e.currentTarget.textContent &&
-                  e.currentTarget.textContent.length <= 450
+                  (e.currentTarget.textContent &&
+                    e.currentTarget.textContent.length <= 450) ||
+                  !e.currentTarget.textContent
                 )
                   setDescriptionField(e.currentTarget.textContent || "");
                 else {
