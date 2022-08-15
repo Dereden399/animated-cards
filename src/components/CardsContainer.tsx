@@ -1,18 +1,17 @@
-import { AnimatePresence, LayoutGroup } from "framer-motion";
-import React from "react";
+import { AnimatePresence } from "framer-motion";
+import React, { forwardRef } from "react";
 
-const CardsContainer = ({
-  children,
-}: {
-  children?: JSX.Element | JSX.Element[] | null;
-}) => {
+const CardsContainer = forwardRef<
+  HTMLDivElement,
+  { children?: JSX.Element | JSX.Element[] | null }
+>(({ children }, ref) => {
   return (
-    <div className='flex flex-col gap-y-6 gap-x-6 max-h-[calc(100vh-3rem)] w-fit flex-wrap'>
-      <LayoutGroup>
+    <div className='h-full w-full pr-[15rem] pb-[10rem]'>
+      <div className='h-full w-full relative' id='card-container' ref={ref}>
         <AnimatePresence>{children}</AnimatePresence>
-      </LayoutGroup>
+      </div>
     </div>
   );
-};
+});
 
 export default CardsContainer;
